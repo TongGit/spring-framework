@@ -179,6 +179,8 @@ import org.springframework.util.StringUtils;
  * @see org.springframework.util.AntPathMatcher
  * @see org.springframework.core.io.ResourceLoader#getResource(String)
  * @see ClassLoader#getResources(String)
+ *
+ * 支持新增的 "classpath*:" 协议前缀，还支持 Ant 风格的路径匹配模式(类似于 "**\\/*.xml")
  */
 public class PathMatchingResourcePatternResolver implements ResourcePatternResolver {
 
@@ -200,9 +202,13 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 		}
 	}
 
-
+	/**
+	 * 资源加载器，初始化时指定 或 加载默认的资源加载器
+	 */
 	private final ResourceLoader resourceLoader;
-
+	/**
+	 * Ant 匹配路径
+ 	 */
 	private PathMatcher pathMatcher = new AntPathMatcher();
 
 
@@ -335,11 +341,14 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 	protected Set<Resource> doFindAllClassPathResources(String path) throws IOException {
 		Set<Resource> result = new LinkedHashSet<>(16);
 		ClassLoader cl = getClassLoader();
+		//1、根据 ClassLoader 加载路径下的所有资源
 		Enumeration<URL> resourceUrls = (cl != null ? cl.getResources(path) : ClassLoader.getSystemResources(path));
+		//2、把每个 URL 转换成 URLResource
 		while (resourceUrls.hasMoreElements()) {
 			URL url = resourceUrls.nextElement();
 			result.add(convertClassLoaderURL(url));
 		}
+		//3、加载路径下所有 jar 包的资源
 		if ("".equals(path)) {
 			// The above result is likely to be incomplete, i.e. only containing file system references.
 			// We need to have pointers to each of the jar files on the classpath as well...
@@ -531,12 +540,18 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 	 * @return the part of the location that denotes the root directory
 	 * @see #retrieveMatchingFiles
 	 */
+//	classpath*:test/cc*/spring-*.xml -> classpath*:test/
+// 	classpath*:test*/spring-*.xml -> classpath*:
 	protected String determineRootDir(String location) {
+		//1、冒号的后一位
 		int prefixEnd = location.indexOf(':') + 1;
+		//2、根目录结束位置，字符串末尾
 		int rootDirEnd = location.length();
+		//3、如果根目录包含ant通配符，则截取目录结束位到最后一个 / , 循环判断，直到不包含。
 		while (rootDirEnd > prefixEnd && getPathMatcher().isPattern(location.substring(prefixEnd, rootDirEnd))) {
 			rootDirEnd = location.lastIndexOf('/', rootDirEnd - 2) + 1;
 		}
+		//4、根目录全是ant通配符，结束位取冒号后一位
 		if (rootDirEnd == 0) {
 			rootDirEnd = prefixEnd;
 		}

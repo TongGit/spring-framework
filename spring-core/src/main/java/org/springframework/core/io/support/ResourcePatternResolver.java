@@ -50,6 +50,8 @@ import org.springframework.core.io.ResourceLoader;
  * @see org.springframework.core.io.ResourceLoader
  * @see org.springframework.context.ApplicationContext
  * @see org.springframework.context.ResourceLoaderAware
+ *
+ * 支持新的协议前缀 classpath*: 的资源加载
  */
 public interface ResourcePatternResolver extends ResourceLoader {
 

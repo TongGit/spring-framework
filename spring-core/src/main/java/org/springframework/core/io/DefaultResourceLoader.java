@@ -44,6 +44,8 @@ import org.springframework.util.StringUtils;
  * @since 10.03.2004
  * @see FileSystemResourceLoader
  * @see org.springframework.context.support.ClassPathXmlApplicationContext
+ *
+ * 资源加载的默认实现
  */
 public class DefaultResourceLoader implements ResourceLoader {
 
@@ -143,20 +145,24 @@ public class DefaultResourceLoader implements ResourceLoader {
 	@Override
 	public Resource getResource(String location) {
 		Assert.notNull(location, "Location must not be null");
-
+		//1、通过 ProtocolResolver 加载资源
 		for (ProtocolResolver protocolResolver : this.protocolResolvers) {
 			Resource resource = protocolResolver.resolve(location, this);
 			if (resource != null) {
 				return resource;
 			}
 		}
-
+		//2、以 / 开头，返回 ClassPathContextResource 类型的资源
 		if (location.startsWith("/")) {
 			return getResourceByPath(location);
 		}
+		//3、以 classpath: 开头，返回 ClassPathResource 类型的资源
 		else if (location.startsWith(CLASSPATH_URL_PREFIX)) {
 			return new ClassPathResource(location.substring(CLASSPATH_URL_PREFIX.length()), getClassLoader());
 		}
+		//4、尝试分析location为一个URL。
+		// 		如果是文件类型的URL，返回 FileUrlResource，否则返回 UrlResource
+		// 		如果拋出异常，返回 ClassPathContextResource 类型的资源
 		else {
 			try {
 				// Try to parse the location as a URL...
