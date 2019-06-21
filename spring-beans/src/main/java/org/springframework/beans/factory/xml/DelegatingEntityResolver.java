@@ -35,6 +35,10 @@ import org.springframework.util.Assert;
  * @since 2.0
  * @see BeansDtdResolver
  * @see PluggableSchemaResolver
+ *
+ * @see EntityResolver 作用：项目本身可以提供一个如何寻找 DTD 声明的方法，即由程序来实现寻找 DTD 声明的过程。
+ * 比如我们将 DTD 文件放到项目中某处，在实现时直接将此文档读取并返回给 SAX 即可。
+ *
  */
 public class DelegatingEntityResolver implements EntityResolver {
 
@@ -76,7 +80,21 @@ public class DelegatingEntityResolver implements EntityResolver {
 		this.schemaResolver = schemaResolver;
 	}
 
-
+	/**
+	 * 解析 公共标识符和系统标识符 生成一个输入源
+	 * @param publicId	公共标识符	如果没有提供，则返回 null
+	 * @param systemId	系统标识符
+	 * eg:
+	 *   XSD 验证模式
+	 *   	publicId：null
+	 * 	 	systemId：http://www.springframework.org/schema/beans/spring-beans.xsd
+	 * 	 DTD 验证模式
+	 *		publicId：-//SPRING//DTD BEAN 2.0//EN
+	 * 		systemId：http://www.springframework.org/dtd/spring-beans.dtd
+	 * @return
+	 * @throws SAXException
+	 * @throws IOException
+	 */
 	@Override
 	@Nullable
 	public InputSource resolveEntity(@Nullable String publicId, @Nullable String systemId)

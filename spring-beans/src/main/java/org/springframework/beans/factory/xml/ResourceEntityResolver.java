@@ -74,16 +74,19 @@ public class ResourceEntityResolver extends DelegatingEntityResolver {
 	@Nullable
 	public InputSource resolveEntity(@Nullable String publicId, @Nullable String systemId)
 			throws SAXException, IOException {
-
+		//1、用父类方法解析
 		InputSource source = super.resolveEntity(publicId, systemId);
 
 		if (source == null && systemId != null) {
 			String resourcePath = null;
 			try {
+				//2、把systemId转换为标准的URL串
 				String decodedSystemId = URLDecoder.decode(systemId, "UTF-8");
 				String givenUrl = new URL(decodedSystemId).toString();
+				//3、当前系统的根目录
 				String systemRootUrl = new File("").toURI().toURL().toString();
 				// Try relative to resource base if currently in system root.
+				//4、如果systemId以系统根目录开头，获取之后的路径。尝试以classPathResource方式加载资源。
 				if (givenUrl.startsWith(systemRootUrl)) {
 					resourcePath = givenUrl.substring(systemRootUrl.length());
 				}
@@ -96,6 +99,7 @@ public class ResourceEntityResolver extends DelegatingEntityResolver {
 				// No URL (or no resolvable URL) -> try relative to resource base.
 				resourcePath = systemId;
 			}
+			//5、第2，3，4步成功，加载资源
 			if (resourcePath != null) {
 				if (logger.isTraceEnabled()) {
 					logger.trace("Trying to locate XML entity [" + systemId + "] as resource [" + resourcePath + "]");
@@ -108,6 +112,7 @@ public class ResourceEntityResolver extends DelegatingEntityResolver {
 					logger.debug("Found XML entity [" + systemId + "]: " + resource);
 				}
 			}
+			//6、systemId以 .dtd 或 .xsd 结束，使用URL加载资源
 			else if (systemId.endsWith(DTD_SUFFIX) || systemId.endsWith(XSD_SUFFIX)) {
 				// External dtd/xsd lookup via https even for canonical http declaration
 				String url = systemId;
