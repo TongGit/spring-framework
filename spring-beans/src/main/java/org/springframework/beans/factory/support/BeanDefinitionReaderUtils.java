@@ -103,7 +103,7 @@ public abstract class BeanDefinitionReaderUtils {
 	public static String generateBeanName(
 			BeanDefinition definition, BeanDefinitionRegistry registry, boolean isInnerBean)
 			throws BeanDefinitionStoreException {
-
+		//获取bean定义对象的全类名
 		String generatedBeanName = definition.getBeanClassName();
 		if (generatedBeanName == null) {
 			if (definition.getParentName() != null) {
@@ -121,10 +121,12 @@ public abstract class BeanDefinitionReaderUtils {
 		String id = generatedBeanName;
 		if (isInnerBean) {
 			// Inner bean: generate identity hashcode suffix.
+			// 如果是内部bean，例：XmlReaderContext#fffffff0
 			id = generatedBeanName + GENERATED_BEAN_NAME_SEPARATOR + ObjectUtils.getIdentityHexString(definition);
 		}
 		else {
 			// Top-level bean: use plain class name with unique suffix if necessary.
+			// 非内部bean，例：XmlReaderContext#1
 			return uniqueBeanName(generatedBeanName, registry);
 		}
 		return id;
