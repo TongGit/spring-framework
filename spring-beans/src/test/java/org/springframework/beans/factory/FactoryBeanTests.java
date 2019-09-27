@@ -63,6 +63,9 @@ public class FactoryBeanTests {
 		BeanFactoryPostProcessor ppc = (BeanFactoryPostProcessor) factory.getBean("propertyPlaceholderConfigurer");
 		ppc.postProcessBeanFactory(factory);
 
+		assertThat(factory.getBean("&betaFactory")).isNotNull();
+		assertThat(factory.getBean("&betaFactory")).isNotNull();
+		assertThat(factory.getBean("betaFactory")).isNotNull();
 		assertThat(factory.getType("betaFactory")).isNull();
 
 		Alpha alpha = (Alpha) factory.getBean("alpha");
